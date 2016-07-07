@@ -240,7 +240,15 @@ module Apartment
       #
       def load_or_abort(file)
         if File.exists?(file)
-          load(file)
+          # load(file)
+          sql = File.read(file)
+          statements = sql.split(/;$/)
+          statements.pop  # the last empty statement
+          ActiveRecord::Base.transaction do
+            statements.each do |statement|
+              Apartment.connection.execute(statement)
+            end
+          end
         else
           abort %{#{file} doesn't exist yet}
         end
